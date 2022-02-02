@@ -48,43 +48,16 @@ except Exception as e:
         'R package "DESeq2" is necessary.\n'
         'Please install it from https://bioconductor.org/packages/release/bioc/html/DESeq2.html and try again'
     )
-
-
-def run(adata,formula,get_vsd=True,get_pca=True,top_genes=500,**kwargs):
     
-    logg.info("Running DESeq2 pipeline", reset=True, end="\n")
+def run(adata,formula,**kwargs):
+    logg.info("Running DESeq2", reset=True, end="\n")
     
     adata.uns["Formula"] = formula 
     dds = deseq.DESeqDataSetFromMatrix(countData=adata.X.T, 
                                         colData=adata.obs,
                                         design=Formula(formula))
     dds = deseq.DESeq(dds, **kwargs)
-    adata.layers["normalized"] = deseq.counts_DESeqDataSet(dds, normalized=True).T   
-    
-    log_vsd=""
-    if get_vsd:
-        logg.info("    obtaining vsd", end="\n")
-        vsd=deseq.vst(dds, blind=False)
-        adata.layers["vsd"] = SE.assay(vsd).T
-        log_vsd="    .layers['vsd'] variance stabilized count matrix.\n"
-    
-    log_pca=""
-    if get_pca:
-        raw = adata.X.copy() 
-        mat = "vsd" if get_vsd else "normalized"
-        adata.X = adata.layers[mat]
-        adata.var[mat+"_std"]=adata.X.std(axis=0)
-        adata.var["highly_variable"]=False
-        adata.var.loc[adata.var[mat+"_std"].sort_values(ascending=False).index[:top_genes],
-                      "highly_variable"]=True
-    
-        logg.info("    PCA on highly variable genes using "+mat+ "matrix", end="\n")
-        sc.pp.pca(adata)
-        adata.X = raw
-        log_pca="    .var['"+mat+"_std'] variance of genes calculated from vsd matrix."+\
-            "\n    .var['highly_variable'] genes considered as highly variable."+\
-            "\n    .obsm['X_pca'] PCA results."+\
-            "\n    .uns['pca'] PCA additional results.\n"
+    adata.layers["normalized"] = deseq.counts_DESeqDataSet(dds, normalized=True).T 
     
     adata.uns["dds"] = dds
     
@@ -96,11 +69,53 @@ def run(adata,formula,get_vsd=True,get_pca=True,top_genes=500,**kwargs):
     logg.hint(
         "added\n"
         "    .layers['normalized'] normalized count matrix.\n"
-        +log_vsd+log_pca+
         "    .uns['dds'] DESeq2 R object.\n"
         "    .uns['Formula'] formula used for design parameter."
     )
     
+    
+def vst(adata):
+    logg.info("Obtaining vsd", end="\n")
+    vsd=deseq.vst(adata.uns["dds"], blind=False)
+    adata.layers["vsd"] = SE.assay(vsd).T
+    logg.info(
+        "    done",
+        time=True,
+        end=" " if settings.verbosity > 2 else "\n",
+    )
+    logg.hint(
+        "added\n"
+        "    .layers['vsd'] variance stabilized count matrix."
+    )
+    
+def pca(adata,top_genes=500):
+    logg.info("Obtaining PCA", reset=True, end="\n")
+    raw = adata.X.copy() 
+    mat = "vsd" if "vsd" in adata.layers else "normalized"
+    adata.X = adata.layers[mat]
+    adata.var[mat+"_std"]=adata.X.std(axis=0)
+    adata.var["highly_variable"]=False
+    adata.var.loc[adata.var[mat+"_std"].sort_values(ascending=False).index[:top_genes],
+                  "highly_variable"]=True
+    logg.info("    on highly variable genes using "+mat+ " matrix", end="\n")
+    sc.pp.pca(adata)
+    adata.X = raw
+    
+    logg.info(
+        "    done",
+        time=True,
+        end=" " if settings.verbosity > 2 else "\n",
+    )
+    logg.hint(
+        "added\n"
+        "    .var['"+mat+"_std'] variance of genes calculated from vsd matrix.\n"
+        "    .var['highly_variable'] genes considered as highly variable.\n"
+        "    .obsm['X_pca'] PCA results.\n"
+        "    .uns['pca'] PCA additional results."
+    )
+
+def show_results(adata):
+    print(deseq.resultsNames(adata.uns["dds"]))
 
 def result(adata,name,lfc_shrink=False,**kwargs):
     logg.info("Generating DE results", reset=True, end="\n")
@@ -132,11 +147,13 @@ def result(adata,name,lfc_shrink=False,**kwargs):
         "    .uns['"+res+"']['"+name+"'] table of differential expression results."
     )
             
-def plot(adata,mode,name):
+def plot(adata,mode,name,figsize=(4,3.5)):
     df=adata.uns[mode][name]
-    fig,ax=plt.subplots(figsize=(4,3.5))
-    ax.scatter(df.baseMean,df.log2FoldChange,s=2,c="lightgrey")
-    ax.scatter(df.loc[df.padj<0.05].baseMean,df.loc[df.padj<0.05].log2FoldChange,s=2)
+    fig,ax=plt.subplots(figsize=figsize,constrained_layout=True)
+    ax.scatter(df.baseMean,df.log2FoldChange,
+               s=2,c="lightgrey",rasterized=True)
+    ax.scatter(df.loc[df.padj<0.05].baseMean,df.loc[df.padj<0.05].log2FoldChange,
+               s=2,rasterized=True)
     ax.semilogx();
     ax.set_ylabel("log fold change");
     ax.set_xlabel("mean of normalized counts");

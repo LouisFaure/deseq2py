@@ -16,7 +16,7 @@ setup(
         "dirty_template": "{tag}",
     },
     setup_requires=["setuptools-git-versioning"],
-    description="Python wraopper of DESeq2, combined with anndata",
+    description="Python wrapper of DESeq2, combined with anndata",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/LouisFaure/deseq2py",
