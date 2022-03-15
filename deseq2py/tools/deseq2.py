@@ -1,8 +1,8 @@
 import scanpy as sc
+import numpy as np
 
-import matplotlib.pyplot as plt
-from . import logging as logg
-from . import settings
+from .. import logging as logg
+from .. import settings
 
 import shutil
 
@@ -53,6 +53,9 @@ def run(adata,formula,**kwargs):
     logg.info("Running DESeq2", reset=True, end="\n")
     
     adata.uns["Formula"] = formula 
+    if isinstance(adata.X, np.ndarray) == False:
+        logg.warn("Sparse matrix detected, densifying...")
+        adata.X = adata.X.A
     dds = deseq.DESeqDataSetFromMatrix(countData=adata.X.T, 
                                         colData=adata.obs,
                                         design=Formula(formula))
@@ -124,17 +127,17 @@ def result(adata,name,lfc_shrink=False,**kwargs):
         logg.info("    running LFC shrinking", end="\n")
         df=to_dataframe(deseq.lfcShrink(adata.uns["dds"],coef=name))
         df.index=adata.var_names
-        if "LFC_shrink" in adata.uns:
-            adata.uns["LFC_shrink"][name]=df
+        if name in adata.uns:
+            adata.uns[name]["LFC_shrink"]=df
         else:
-            adata.uns["LFC_shrink"]={name:df}
+            adata.uns[name]={"LFC_shrink":df}
     else:
         df=to_dataframe(deseq.results(adata.uns["dds"],name=name))
         df.index=adata.var_names
-        if "Results" in adata.uns:
-            adata.uns["Results"][name]=df
+        if name in adata.uns:
+            adata.uns[name]["Results"]=df
         else:
-            adata.uns["Results"]={name:df}
+            adata.uns[name]={"Results":df}
             
     res = "LFC_shrink" if lfc_shrink else "Results"
     logg.info(
@@ -144,22 +147,9 @@ def result(adata,name,lfc_shrink=False,**kwargs):
     )
     logg.hint(
         "added\n"
-        "    .uns['"+res+"']['"+name+"'] table of differential expression results."
+        "    .uns['"+name+"']['"+res+"'] table of differential expression results."
     )
             
-def plot(adata,mode,name,figsize=(4,3.5)):
-    df=adata.uns[mode][name]
-    fig,ax=plt.subplots(figsize=figsize,constrained_layout=True)
-    ax.scatter(df.baseMean,df.log2FoldChange,
-               s=2,c="lightgrey",rasterized=True)
-    ax.scatter(df.loc[df.padj<0.05].baseMean,df.loc[df.padj<0.05].log2FoldChange,
-               s=2,rasterized=True)
-    ax.semilogx();
-    ax.set_ylabel("log fold change");
-    ax.set_xlabel("mean of normalized counts");
-    ax.axhline(c="grey",linewidth=2)
-    ax.grid(False)
-    ax.set_title(name)
     
 def save(adata,name):
     logg.info("Saving results", reset=True, end="\n")
