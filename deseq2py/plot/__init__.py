@@ -1,1 +1,1 @@
-from .plot import pca, results
+from .plot import pca, result
