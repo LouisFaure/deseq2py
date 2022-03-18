@@ -4,7 +4,7 @@ import scanpy as sc
 import deseq2py as deseq2
 
 
-def run():
+def test_all():
 
     cnts=pd.read_csv("https://ftp.ncbi.nlm.nih.gov/geo/series/GSE152nnn/GSE152774/suppl/GSE152774_HTSeq_genes_count_df.csv.gz",index_col=0)
     cnts.columns=cnts.columns.astype(str)
