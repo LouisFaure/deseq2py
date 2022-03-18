@@ -1,0 +1,10 @@
+name: deseq2py
+channels:
+  - conda-forge
+  - bioconda
+
+dependencies:
+  - python=3.8
+  - bioconductor-deseq2
+  - bioconductor-apeglm
+  - rpy2
