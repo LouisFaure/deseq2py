@@ -118,9 +118,13 @@ def pca(adata,top_genes=500):
     )
 
 def show_results(adata):
-    print(deseq.resultsNames(adata.uns["dds"]))
+    return list(deseq.resultsNames(adata.uns["dds"]))
 
 def result(adata,name,lfc_shrink=False,**kwargs):
+    
+    if ~np.isin(name,show_results(adata)):
+        raise ValueError('result not present in DESeq2 object, available results are:\n    '+
+                         '\n    '.join(show_results(adata)))
     logg.info("Generating DE results", reset=True, end="\n")
     to_dataframe = robjects.r('function(x) data.frame(x)')
     if lfc_shrink:
