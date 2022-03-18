@@ -166,3 +166,10 @@ def save(adata,name):
         "    "+name+".h5ad: anndata file containing counts matrices, pca and DE results.\n"
         "    "+name+".rds: R object of the DESeqDataSet."
     )
+
+    
+def read(name):
+    adata = sc.read(name+".h5ad")
+    readRDS = robjects.r['readRDS']
+    adata.uns["dds"] = readRDS(name+'.rds')
+    return adata
