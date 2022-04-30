@@ -5,32 +5,21 @@ on:
 
 jobs:
   build_and_test:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os:  [ubuntu-latest, windows-latest]
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
     - uses: mamba-org/provision-with-micromamba@main
-    - name: Install and Test ubuntu
+    - name: Install and Test
       shell: bash -l {0}
       run: |
         pip install git+https://github.com/LouisFaure/deseq2py.git coverage pytest
         coverage run -m pytest deseq2py/tests/test.py
         coverage report -i -m
         coverage xml -i
-      if: matrix.os == 'ubuntu-latest'
-    - name: Install and Test windows
-      shell: cmd /C CALL {0}
-      run: |
-        pip install git+https://github.com/LouisFaure/deseq2py.git pytest
-        python -m pytest deseq2py/tests/test.py
-      if: matrix.os == 'windows-latest'
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
       with:
         files: ./coverage.xml
         token: ${{ secrets.CODECOV_TOKEN }}
-      if: matrix.os == 'ubuntu-latest'
