@@ -6,7 +6,7 @@ Python wrapper of DESeq2 R package, combined with anndata object for easy access
 The best way to get everything running smoothly is to use conda:
 
 ```bash
-conda create -n deseq2py -c conda-forge -c bioconda python=3.8 bioconductor-deseq2 bioconductor-apeglm bioconductor-summarizedexperiment rpy2 -y
+conda create -n deseq2py -c conda-forge -c bioconda python=3.8 bioconductor-deseq2 bioconductor-apeglm rpy2 -y
 conda activate deseq2py
 pip install git+https://github.com/LouisFaure/deseq2py.git
 ```

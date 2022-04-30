@@ -23,7 +23,7 @@ jobs:
         coverage xml -i
       if: matrix.os == 'ubuntu-latest'
     - name: Install and Test windows
-      shell: powershell
+      shell: cmd /C CALL {0}
       run: |
         pip install git+https://github.com/LouisFaure/deseq2py.git pytest
         python -m pytest deseq2py/tests/test.py

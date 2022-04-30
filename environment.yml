@@ -7,5 +7,4 @@ dependencies:
   - python=3.8
   - bioconductor-deseq2
   - bioconductor-apeglm
-  - bioconductor-summarizedexperiment
   - rpy2
