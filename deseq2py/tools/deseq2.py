@@ -130,6 +130,7 @@ def result(adata,name,lfc_shrink=False,**kwargs):
     if lfc_shrink:
         logg.info("    running LFC shrinking", end="\n")
         df=to_dataframe(deseq.lfcShrink(adata.uns["dds"],coef=name))
+        df=robjects.conversion.rpy2py(df)
         df.index=adata.var_names
         if name in adata.uns:
             adata.uns[name]["LFC_shrink"]=df
@@ -137,6 +138,7 @@ def result(adata,name,lfc_shrink=False,**kwargs):
             adata.uns[name]={"LFC_shrink":df}
     else:
         df=to_dataframe(deseq.results(adata.uns["dds"],name=name))
+        df=robjects.conversion.rpy2py(df)
         df.index=adata.var_names
         if name in adata.uns:
             adata.uns[name]["Results"]=df
