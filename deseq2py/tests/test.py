@@ -6,7 +6,7 @@ import deseq2py as deseq2
 
 def test_all():
 
-    cnts=pd.read_csv("https://ftp.ncbi.nlm.nih.gov/geo/series/GSE152nnn/GSE152774/suppl/GSE152774_HTSeq_genes_count_df.csv.gz",index_col=0)
+    cnts=pd.read_csv("https://raw.githubusercontent.com/LouisFaure/deseq2py/main/deseq2py/tests/GSE152774_HTSeq_genes_count_df.csv.gz",index_col=0)
     cnts.columns=cnts.columns.astype(str)
     
     X=cnts.iloc[:,[0,2,9,1,4,6,3,5,7]].T.astype(np.float32)
