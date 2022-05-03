@@ -6,19 +6,11 @@ from .. import settings
 
 import shutil
 
-try:
-    from rpy2.robjects import pandas2ri, Formula
-    from rpy2.robjects.packages import importr
-    import rpy2.robjects as robjects
+from rpy2.robjects import pandas2ri, Formula
+from rpy2.robjects.packages import importr
+import rpy2.robjects as robjects
 
-    pandas2ri.activate()
-except Exception as e:
-    raise Exception(
-        "rpy2 installation is necessary for "
-        + task
-        + '. \
-        \nPlease use "pip3 install rpy2" to install rpy2'
-    )
+pandas2ri.activate()
 
 if not shutil.which("R"):
     raise Exception(
@@ -29,7 +21,7 @@ try:
     rstats = importr("stats")
 except Exception as e:
     raise Exception(
-        "R installation is necessary."
+        "check R installation."
     )
 
 try:
