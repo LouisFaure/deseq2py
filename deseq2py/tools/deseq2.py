@@ -71,7 +71,8 @@ def run(adata,formula,**kwargs):
     
 def vst(adata):
     logg.info("Obtaining vsd", end="\n")
-    vsd=deseq.vst(adata.uns["dds"], blind=False)
+    nsub = min(sum(adata.layers["normalized"].mean(axis=0) > 5), 1000)
+    vsd = deseq.vst(adata.uns["dds"], nsub=nsub, blind=False)
     adata.layers["vsd"] = SE.assay(vsd).T
     logg.info(
         "    done",
